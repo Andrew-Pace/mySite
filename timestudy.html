@@ -10,31 +10,37 @@
 
     <main>
         <section class="timer-card multi-timers">
-            <h1 class="timer-title">3-Button Stopwatch (hold to run)</h1>
+            <h1 class="timer-title">TimeStudy-inator</h1>
+        <div style="text-align:center; margin-bottom:12px;">
+            <input id="csv-title" type="text" placeholder="CSV file name (optional)" style="font-size:1.1rem; padding:6px 10px; border-radius:6px; border:1px solid #ccc; max-width:320px; width:90%;">
+        </div>
 
             <!-- Top sheet showing current times for timers 1,2,3 -->
             <div class="sheet-window">
                 <div class="sheet-header">
                     <table class="sheet-table" aria-label="Current timer times">
-                        <thead>
-                            <tr><th>Step</th><th>1</th><th>2</th><th>3</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr id="sheet-row-0"><td class="row-label">1</td><td id="sheet-r0-c0">00:00.00</td><td id="sheet-r0-c1">00:00.00</td><td id="sheet-r0-c2">00:00.00</td></tr>
-                            <tr id="sheet-row-1"><td class="row-label">2</td><td id="sheet-r1-c0">00:00.00</td><td id="sheet-r1-c1">00:00.00</td><td id="sheet-r1-c2">00:00.00</td></tr>
-                            <tr id="sheet-row-2"><td class="row-label">3</td><td id="sheet-r2-c0">00:00.00</td><td id="sheet-r2-c1">00:00.00</td><td id="sheet-r2-c2">00:00.00</td></tr>
-                            <tr id="sheet-row-3"><td class="row-label">4</td><td id="sheet-r3-c0">00:00.00</td><td id="sheet-r3-c1">00:00.00</td><td id="sheet-r3-c2">00:00.00</td></tr>
-                            <tr id="sheet-row-4"><td class="row-label">5</td><td id="sheet-r4-c0">00:00.00</td><td id="sheet-r4-c1">00:00.00</td><td id="sheet-r4-c2">00:00.00</td></tr>
-                        </tbody>
+                      <thead>
+                        <tr>
+                          <th class="row-label">Step</th>
+                          <th class="header-label">VA</th>
+                          <th class="header-label">NVA</th>
+                          <th class="header-label">Walk</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                          <tr id="sheet-row-0"><td class="row-label">1</td><td id="sheet-r0-c0">00:00.00</td><td id="sheet-r0-c1">00:00.00</td><td id="sheet-r0-c2">00:00.00</td></tr>
+                          <tr id="sheet-row-1"><td class="row-label">2</td><td id="sheet-r1-c0">00:00.00</td><td id="sheet-r1-c1">00:00.00</td><td id="sheet-r1-c2">00:00.00</td></tr>
+                          <tr id="sheet-row-2"><td class="row-label">3</td><td id="sheet-r2-c0">00:00.00</td><td id="sheet-r2-c1">00:00.00</td><td id="sheet-r2-c2">00:00.00</td></tr>
+                          <tr id="sheet-row-3"><td class="row-label">4</td><td id="sheet-r3-c0">00:00.00</td><td id="sheet-r3-c1">00:00.00</td><td id="sheet-r3-c2">00:00.00</td></tr>
+                          <tr id="sheet-row-4"><td class="row-label">5</td><td id="sheet-r4-c0">00:00.00</td><td id="sheet-r4-c1">00:00.00</td><td id="sheet-r4-c2">00:00.00</td></tr>
+                      </tbody>
                     </table>
                 </div>
                 <!-- Footer below the table: Reset All and Save to csv -->
                 <div class="sheet-footer">
                     <button id="reset-all" class="reset-all-btn">Reset All</button>
-                    <button id="export-state" class="reset-all-btn">Export JSON</button>
-                    <input id="import-file" type="file" accept="application/json" style="display:none" />
-                    <button id="import-state" class="reset-all-btn">Import JSON</button>
-                    <span id="save-status" aria-live="polite" style="margin-left:12px;font-size:0.9rem;color:#555">(no saved state)</span>
+                    <button id="export-state" class="reset-all-btn">Export CSV</button>
+                    <span id="save-status" aria-live="polite" style="margin-left:12px;font-size:0.9rem;color:#555"></span>
                 </div>
             </div>
 

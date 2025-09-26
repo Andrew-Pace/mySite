@@ -1,3 +1,14 @@
+/* Timer running cell highlight */
+.timer-running-cell {
+    background: #7fff7f !important; /* light green */
+    transition: background 0.18s;
+}
+/* Force top header cells to match Step column color (light orange) */
+.sheet-table thead th {
+    background: #ffe9c6 !important;
+    color: #b85c00 !important;
+    font-weight: 700;
+}
 :root{ --nav-height:56px; }
 
 html, body { height: 100%; }
@@ -334,13 +345,21 @@ main {
 .sheet-footer .reset-all-btn, #nav-replacement { background:#6c8cff; }
 #nav-replacement { min-width: 88px; }
 .sheet-table thead th { text-align:center; padding:12px 8px; background:#e9eef6; border-bottom:1px solid #cdd7ea; font-weight:700; }
+.sheet-table th.row-label,
+.sheet-table th.header-label {
+    background: #f7fbff;
+    color: #222;
+    font-weight: 700;
+}
 .sheet-table td { text-align:center; padding:14px 8px; font-size: clamp(0.95rem, 4.5vw, 1.05rem); border-right:1px solid #eef3fb; }
 .sheet-table td:last-child{ border-right: none; }
 
 /* Make sheet rows selectable and show an active highlight */
 .sheet-table tbody tr { cursor: pointer; transition: background 0.12s ease; }
 .sheet-table tbody tr:hover { background: rgba(0,0,0,0.03); }
-.sheet-table tbody tr.active-row { background: linear-gradient(90deg, rgba(108,140,255,0.08), rgba(108,140,255,0.04)); }
+.sheet-table tbody tr.active-row {
+    background: linear-gradient(90deg, rgba(60,120,255,0.18), rgba(60,120,255,0.09));
+}
 
 /* Dim non-active rows slightly so the active row stands out. Keep the
    step label orange and unaffected. */
@@ -359,6 +378,18 @@ main {
     color: #6b3f00;
     font-weight: 800;
 }
+
+    /* Make both the Step column and the top column labels (VA, NVA, Walk) light orange */
+    .sheet-table thead th {
+        background: #ffe9c6;
+        color: #b85c00;
+        font-weight: 700;
+    }
+    .sheet-table td.row-label {
+        background: #ffe9c6;
+        color: #b85c00;
+        font-weight: 700;
+    }
 
 /* Timer columns take remaining width */
 .sheet-table td:not(.row-label) { width: calc((100% - 56px) / 3); }

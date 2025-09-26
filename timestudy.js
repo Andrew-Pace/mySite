@@ -19,18 +19,40 @@
     // Persistent storage helpers
     const STORAGE_KEY = 'timestudy_state_v1';
     let _initialized = false; // prevent writes during startup
+    // Detect whether localStorage is available (useful for diagnosis on hosted sites)
+    function storageAvailable(){
+        try{
+            const testKey = '__timestudy_test__';
+            localStorage.setItem(testKey, '1');
+            localStorage.removeItem(testKey);
+            return true;
+        }catch(e){
+            return false;
+        }
+    }
+    const _storageOk = storageAvailable();
     function saveState(){
         try{
             if(!_initialized) return; // skip saving while scripts initialize (avoids wiping existing saved state)
+            if(!_storageOk) {
+                try{ console.warn('timestudy.saveState: localStorage unavailable'); }catch(e){}
+                const statusEl = document.getElementById('save-status');
+                if(statusEl) statusEl.textContent = '(storage unavailable)';
+                return;
+            }
             const state = { activeRow, timers: timers.map(t=>({ elapsedPerRow: t.elapsedPerRow, running: t.running, runningRow: t.runningRow, baseElapsed: t.baseElapsed, startTimestamp: t.running ? Date.now() - (performance.now() - t.startTime) : null })) };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            // Do not show a '(saved)' confirmation — keep saves silent per user preference
             const statusEl = document.getElementById('save-status');
-            if(statusEl) statusEl.textContent = '(saved)';
             try{ console.debug('timestudy.saveState saved', { key: STORAGE_KEY, size: (localStorage.getItem(STORAGE_KEY)||'').length }); }catch(e){}
         }catch(err){ /* ignore */ }
     }
     function loadState(){
         try{
+            if(!_storageOk) {
+                try{ console.warn('timestudy.loadState: localStorage unavailable'); }catch(e){}
+                return null;
+            }
             const raw = localStorage.getItem(STORAGE_KEY);
             try{ console.debug('timestudy.loadState read', { key: STORAGE_KEY, size: raw ? raw.length : 0 }); }catch(e){}
             if(!raw) return null;
@@ -82,11 +104,17 @@
                 formatted = formatMs(now);
                 // update the cell for the row this timer is currently recording
                 const sheetCell = document.getElementById('sheet-r' + t.runningRow + '-c' + t.index);
-                if(sheetCell) sheetCell.textContent = formatted;
+                if(sheetCell) {
+                    sheetCell.textContent = formatted;
+                    sheetCell.classList.add('timer-running-cell');
+                }
             } else {
                 // when not running, show the stored value for the currently selected row
                 const sheetCell = document.getElementById('sheet-r' + activeRow + '-c' + t.index);
-                if(sheetCell) sheetCell.textContent = formatMs(t.elapsedPerRow[activeRow] || 0);
+                if(sheetCell) {
+                    sheetCell.textContent = formatMs(t.elapsedPerRow[activeRow] || 0);
+                    sheetCell.classList.remove('timer-running-cell');
+                }
             }
             t.rafId = requestAnimationFrame(render);
         }
@@ -99,6 +127,9 @@
             t.startTime = performance.now();
             t.running = true;
             t.holdBtn.classList.add('running');
+            // Set the cell background to green when timer starts
+            const sheetCell = document.getElementById('sheet-r' + t.runningRow + '-c' + t.index);
+            if(sheetCell) sheetCell.classList.add('timer-running-cell');
             t.rafId = requestAnimationFrame(render);
             saveState();
         }
@@ -110,7 +141,10 @@
             if(typeof t.runningRow === 'number'){
                 t.elapsedPerRow[t.runningRow] = elapsed;
                 const sheetCell = document.getElementById('sheet-r' + t.runningRow + '-c' + t.index);
-                if(sheetCell) sheetCell.textContent = formatMs(elapsed);
+                if(sheetCell) {
+                    sheetCell.textContent = formatMs(elapsed);
+                    sheetCell.classList.remove('timer-running-cell');
+                }
             }
             t.running = false;
             t.runningRow = null;
@@ -228,11 +262,9 @@
         // Attempt to restore saved state (elapsedPerRow, activeRow, running timers)
         (function(){
             const saved = loadState();
-            const statusEl = document.getElementById('save-status');
-
-            if(!saved || !saved.timers){
-                if(statusEl) statusEl.textContent = '(no saved state)';
-            } else {
+                // do not update any UI status labels; keep silent
+                if(!saved || !saved.timers){
+                } else {
                 try{
                     if(typeof saved.activeRow === 'number') activeRow = Math.max(0, Math.min(ROWS-1, saved.activeRow));
                     for(let i=0;i<COUNT;i++){
@@ -270,10 +302,9 @@
                             if(cell) cell.textContent = formatMs(t.elapsedPerRow[r] || 0);
                         }
                     }
-                    if(statusEl) statusEl.textContent = '(restored)';
+                    // silent restore; do not update UI status text
                 }catch(err){
                     console.error('Restore failed', err);
-                    if(statusEl) statusEl.textContent = '(restore failed)';
                 }
             }
 
@@ -287,8 +318,7 @@
                 if(!hadSaved){
                     saveState();
                 } else {
-                    const statusEl2 = document.getElementById('save-status');
-                    if(statusEl2) statusEl2.textContent = '(restored)';
+                    // do not write a '(restored)' label to the UI; keep silent
                 }
             }catch(e){}
         })();
@@ -334,46 +364,63 @@
         resetAllBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); doResetAll(); }, {passive:false});
     }
 
-    // Export / Import state handlers (JSON)
+    // Export state as CSV (one row per step, columns: Step, Timer1, Timer2, Timer3)
     const exportBtn = document.getElementById('export-state');
-    const importBtn = document.getElementById('import-state');
-    const importFile = document.getElementById('import-file');
     if(exportBtn){
         exportBtn.addEventListener('click', ()=>{
             try{
-                const raw = localStorage.getItem(STORAGE_KEY) || JSON.stringify({ activeRow, timers: timers.map(t=>({ elapsedPerRow: t.elapsedPerRow, running: t.running, runningRow: t.runningRow, baseElapsed: t.baseElapsed })) });
-                const blob = new Blob([raw], { type: 'application/json' });
+                // Build CSV header with descriptive columns and (sec) units
+                const headers = ['Step', 'VA (sec)', 'NVA (sec)', 'Walk (sec)'];
+                const rows = [headers];
+                // For each step/row, compute elapsed milliseconds from timers state and output seconds
+                for(let r=0; r<ROWS; r++){
+                    const row = [String(r+1)];
+                    for(let ti=0; ti<COUNT; ti++){
+                        const t = timers[ti];
+                        let ms = 0;
+                        if(t){
+                            if(t.running && t.runningRow === r){
+                                ms = t.baseElapsed + (performance.now() - t.startTime);
+                            } else {
+                                ms = t.elapsedPerRow[r] || 0;
+                            }
+                        }
+                        // output seconds as decimal with two fraction digits
+                        const seconds = (ms/1000);
+                        row.push(typeof seconds === 'number' ? seconds.toFixed(2) : '0.00');
+                    }
+                    rows.push(row);
+                }
+                // Convert rows to CSV string (comma-separated, values quoted if needed)
+                function csvEscape(val){
+                    if(val == null) return '';
+                    const s = String(val);
+                    if(s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1){
+                        return '"' + s.replace(/"/g, '""') + '"';
+                    }
+                    return s;
+                }
+                const csv = rows.map(r=> r.map(csvEscape).join(',')).join('\r\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'timestudy-state.json';
+                // Get the filename from the input field, fallback to default
+                let filename = 'timestudy-state.csv';
+                const input = document.getElementById('csv-title');
+                if(input && input.value.trim()) {
+                    let name = input.value.trim();
+                    // Remove illegal filename characters
+                    name = name.replace(/[^a-zA-Z0-9-_ ]/g, '');
+                    if(!name.toLowerCase().endsWith('.csv')) name += '.csv';
+                    filename = name;
+                }
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
                 URL.revokeObjectURL(url);
-            }catch(err){ console.error('Export failed', err); }
-        });
-    }
-    if(importBtn && importFile){
-        importBtn.addEventListener('click', ()=> importFile.click());
-        importFile.addEventListener('change', (ev)=>{
-            const f = ev.target.files && ev.target.files[0];
-            if(!f) return;
-            const reader = new FileReader();
-            reader.onload = function(e){
-                try{
-                    const parsed = JSON.parse(String(e.target.result));
-                    // basic validation
-                    if(parsed && Array.isArray(parsed.timers)){
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-                        // reload page so restore logic runs
-                        location.reload();
-                    } else {
-                        alert('Invalid timestudy JSON file');
-                    }
-                }catch(err){ alert('Failed to import: ' + err.message); }
-            };
-            reader.readAsText(f);
+            }catch(err){ console.error('CSV export failed', err); }
         });
     }
 
