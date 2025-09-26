@@ -14,6 +14,41 @@
     let sheetsData = [];
     // timers: 3 timer objects, always operate on current sheet
     const timers = [];
+    
+        // --- Reset Step button logic (moved inside IIFE so it can access variables) ---
+        const resetStepBtn = document.getElementById('reset-step');
+        if(resetStepBtn){
+            let lastTouchTime = 0;
+            const TOUCH_DELAY = 700; // ms
+            const doResetStep = ()=>{
+                if(!window.confirm('Are you sure you want to reset the current step? This cannot be undone.')) return;
+                for(let t=0; t<COUNT; t++){
+                    // Stop timer if running on this row
+                    if(timers[t].running && timers[t].runningRow === activeRow) {
+                        timers[t].stop && timers[t].stop();
+                    }
+                    // Robustly clear all sources of truth for this row
+                    if(Array.isArray(timers[t].elapsedPerRow)) {
+                        timers[t].elapsedPerRow[activeRow] = 0;
+                    }
+                    if(Array.isArray(timers[t].laps)) {
+                        timers[t].laps = timers[t].laps.filter(lap => lap.row !== activeRow);
+                        timers[t].renderLaps && timers[t].renderLaps();
+                    }
+                    if(typeof timers[t].render === 'function') {
+                        timers[t].render();
+                    }
+                }
+                // Update table UI for the reset row
+                for(let ti=0;ti<COUNT;ti++){
+                    const cell = document.getElementById(`sheet-r${activeRow}-c${ti}`);
+                    if(cell) cell.textContent = '00:00.00';
+                }
+                saveState && saveState();
+            };
+                resetStepBtn.addEventListener('click', doResetStep);
+                resetStepBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); doResetStep(); }, {passive:false});
+        }
     function lockScroll(){
         activeHoldCount++;
         if(activeHoldCount === 1) document.body.classList.add('no-scroll');

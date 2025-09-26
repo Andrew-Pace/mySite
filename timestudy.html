@@ -11,45 +11,46 @@
     <main>
         <section class="timer-card multi-timers">
             <h1 class="timer-title">TimeStudy-inator</h1>
-        <div style="text-align:center; margin-bottom:12px;">
+        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
             <input id="csv-title" type="text" placeholder="CSV file name (optional)" style="font-size:1.1rem; padding:6px 10px; border-radius:6px; border:1px solid #ccc; max-width:320px; width:90%;">
+            <button id="export-state" class="reset-all-btn" style="min-width:120px;">Export CSV</button>
         </div>
 
                         <!-- Sheet tabs and top sheet showing current times for timers 1,2,3 -->
                         <div class="sheet-window">
-                                <div class="sheet-tabs" id="sheet-tabs">
-                                    <button class="sheet-tab" data-sheet="0" aria-selected="true">Trial 1</button>
-                                    <button class="sheet-tab" data-sheet="1">Trial 2</button>
-                                    <button class="sheet-tab" data-sheet="2">Trial 3</button>
-                                    <button class="sheet-tab" data-sheet="3">Trial 4</button>
-                                    <button class="sheet-tab" data-sheet="4">Trial 5</button>
-                                </div>
-                                <div class="sheet-header">
-                                        <table class="sheet-table" aria-label="Current timer times">
-                                            <thead>
-                                                <tr>
-                                                    <th class="row-label">Step</th>
-                                                    <th class="header-label">VA</th>
-                                                    <th class="header-label">NVA</th>
-                                                    <th class="header-label">Walk</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                    <tr id="sheet-row-0"><td class="row-label">1</td><td id="sheet-r0-c0">00:00.00</td><td id="sheet-r0-c1">00:00.00</td><td id="sheet-r0-c2">00:00.00</td></tr>
-                                                    <tr id="sheet-row-1"><td class="row-label">2</td><td id="sheet-r1-c0">00:00.00</td><td id="sheet-r1-c1">00:00.00</td><td id="sheet-r1-c2">00:00.00</td></tr>
-                                                    <tr id="sheet-row-2"><td class="row-label">3</td><td id="sheet-r2-c0">00:00.00</td><td id="sheet-r2-c1">00:00.00</td><td id="sheet-r2-c2">00:00.00</td></tr>
-                                                    <tr id="sheet-row-3"><td class="row-label">4</td><td id="sheet-r3-c0">00:00.00</td><td id="sheet-r3-c1">00:00.00</td><td id="sheet-r3-c2">00:00.00</td></tr>
-                                                    <tr id="sheet-row-4"><td class="row-label">5</td><td id="sheet-r4-c0">00:00.00</td><td id="sheet-r4-c1">00:00.00</td><td id="sheet-r4-c2">00:00.00</td></tr>
-                                            </tbody>
-                                        </table>
-                                </div>
-                                <!-- Footer below the table: Reset All and Save to csv -->
-                <div class="sheet-footer">
-                    <button id="reset-this-trial" class="reset-all-btn">Reset This Trial</button>
-                    <button id="reset-all-trials" class="reset-all-btn">Reset All Trials</button>
-                    <button id="export-state" class="reset-all-btn">Export CSV</button>
-                    <span id="save-status" aria-live="polite" style="margin-left:12px;font-size:0.9rem;color:#555"></span>
-                </div>
+                            <div class="sheet-tabs" id="sheet-tabs">
+                                <button class="sheet-tab" data-sheet="0" aria-selected="true">Trial 1</button>
+                                <button class="sheet-tab" data-sheet="1">Trial 2</button>
+                                <button class="sheet-tab" data-sheet="2">Trial 3</button>
+                                <button class="sheet-tab" data-sheet="3">Trial 4</button>
+                                <button class="sheet-tab" data-sheet="4">Trial 5</button>
+                            </div>
+                            <div class="sheet-header">
+                                <table class="sheet-table" aria-label="Current timer times">
+                                    <thead>
+                                        <tr>
+                                            <th class="row-label">Step</th>
+                                            <th class="header-label">VA</th>
+                                            <th class="header-label">NVA</th>
+                                            <th class="header-label">Walk</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr id="sheet-row-0"><td class="row-label">1</td><td id="sheet-r0-c0">00:00.00</td><td id="sheet-r0-c1">00:00.00</td><td id="sheet-r0-c2">00:00.00</td></tr>
+                                        <tr id="sheet-row-1"><td class="row-label">2</td><td id="sheet-r1-c0">00:00.00</td><td id="sheet-r1-c1">00:00.00</td><td id="sheet-r1-c2">00:00.00</td></tr>
+                                        <tr id="sheet-row-2"><td class="row-label">3</td><td id="sheet-r2-c0">00:00.00</td><td id="sheet-r2-c1">00:00.00</td><td id="sheet-r2-c2">00:00.00</td></tr>
+                                        <tr id="sheet-row-3"><td class="row-label">4</td><td id="sheet-r3-c0">00:00.00</td><td id="sheet-r3-c1">00:00.00</td><td id="sheet-r3-c2">00:00.00</td></tr>
+                                        <tr id="sheet-row-4"><td class="row-label">5</td><td id="sheet-r4-c0">00:00.00</td><td id="sheet-r4-c1">00:00.00</td><td id="sheet-r4-c2">00:00.00</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Footer below the table: Reset All and Save to csv -->
+                            <div class="sheet-footer">
+                                <button id="reset-step" class="reset-all-btn">Reset Step</button>
+                                <button id="reset-this-trial" class="reset-all-btn">Reset This Trial</button>
+                                <button id="reset-all-trials" class="reset-all-btn">Reset All Trials</button>
+                                <span id="save-status" aria-live="polite" style="margin-left:12px;font-size:0.9rem;color:#555"></span>
+                            </div>
                         </div>
 
             <div class="timers-grid">
