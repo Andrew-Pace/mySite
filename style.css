@@ -398,9 +398,33 @@ main {
 .sheet-window { max-width: 1100px; margin: 12px auto; padding: 8px; }
 .sheet-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .sheet-table { width: auto; flex: 1 1 auto; border-collapse: collapse; background: #fff; color:#111; border-radius:6px; overflow:hidden; table-layout: fixed; }
-.reset-all-btn { padding:10px 14px; background:#ff6b6b; color:white; border:none; border-radius:8px; font-weight:700; position:relative; z-index:3; min-width:92px; }
-.reset-all-btn:active{ transform: translateY(1px); }
-.sheet-footer .reset-all-btn, #nav-replacement { background:#6c8cff; }
+#export-state.reset-all-btn {
+    background: #6c8cff;
+    color: #fff;
+    transition: background 0.18s;
+}
+#export-state.reset-all-btn:active {
+    background: #3a5db7;
+}
+.reset-all-btn {
+    padding:10px 14px;
+    background: #ff5e4d; /* coral red */
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:700;
+    position:relative;
+    z-index:3;
+    min-width:92px;
+    transition: background 0.18s;
+}
+.reset-all-btn:active {
+    transform: translateY(1px);
+    background: #e14a32;
+}
+.sheet-footer .reset-all-btn {
+    background: #ff5e4d;
+}
 #nav-replacement { min-width: 88px; }
 .sheet-table thead th { text-align:center; padding:12px 8px; background:#e9eef6; border-bottom:1px solid #cdd7ea; font-weight:700; }
 .sheet-table th.row-label,
