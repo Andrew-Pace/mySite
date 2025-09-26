@@ -1,8 +1,47 @@
+:root{ --nav-height:56px; }
+
+html, body { height: 100%; }
+
 body {
     background-color: #ffb3b3; /* pastel red */
     margin: 0;
-    padding-top: 50px; /* space for fixed nav */
+    padding-top: var(--nav-height); /* space for fixed nav */
 }
+
+/* When a page doesn't need the fixed site nav (timestudy), use .no-nav on body
+   to remove the top padding and let the timer-card occupy the full viewport */
+body.no-nav {
+    padding-top: 0;
+}
+
+/* Remove main/top spacing and let timer-card fill the viewport on pages that
+   opt out of the site nav (body.no-nav). This eliminates the leftover blank
+   area above the timer. */
+body.no-nav main {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh; /* ensure main fills viewport */
+}
+
+body.no-nav .timer-card {
+    margin: 0;           /* remove card top margin */
+    padding: 12px 10px;  /* slightly tighter padding for fullscreen feel */
+    min-height: 100vh;   /* make the card occupy whole viewport */
+    max-width: 100%;
+    width: 100%;
+    border-radius: 0;    /* flush to edges */
+    box-shadow: none;    /* remove drop shadow for full-screen look */
+}
+
+/* Full width sheet area for no-nav pages */
+body.no-nav .sheet-window { max-width: 100%; margin: 0; padding: 6px; }
+body.no-nav .sheet-table { width: 100%; table-layout: fixed; }
+
+.sheet-footer { display:flex; gap:10px; justify-content:center; margin-top:8px; }
+.sheet-footer .reset-all-btn { min-width: 120px; }
+
+/* When holding buttons, prevent the page from scrolling (applied via JS) */
+body.no-scroll { overflow: hidden; touch-action: none; }
 
 nav {
     background-color: #333;
@@ -92,3 +131,241 @@ nav ul li.dropdown:focus-within .dropdown-content {
     visibility: visible;
     opacity: 1;
 }
+
+/* Gallery styles */
+main {
+    padding: 28px 20px;
+    max-width: 1100px;
+    margin: 80px auto 40px; /* leave space for fixed nav */
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.gallery-item {
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 6px;
+}
+
+/* TimeStudy timer styles */
+.timer-card {
+    max-width: 520px;
+    margin: 12px auto;
+    background: rgba(255,255,255,0.06);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+}
+
+.timer-title {
+    margin: 0 0 12px 0;
+    text-align: center;
+}
+
+.timer-display {
+    font-family: 'Segoe UI', Roboto, system-ui, -apple-system, 'Helvetica Neue', Arial;
+    font-size: 4.5rem;
+    text-align: center;
+    padding: 10px 6px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.timer-controls .inputs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.timer-controls label { color: #111; font-weight: 600; }
+.timer-controls input[type="number"] { width: 84px; padding: 8px 10px; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc; }
+
+.preset-buttons { display:flex; gap:8px; justify-content:center; margin-bottom:10px; }
+.preset-buttons button { padding:8px 12px; border-radius:6px; border:none; background:#2b2b2b; color:#fff; }
+.preset-buttons button:active { transform: translateY(1px); }
+
+.actions { display:flex; gap:10px; justify-content:center; margin-bottom:8px; }
+.actions button { padding:10px 18px; border-radius:8px; border:none; background: #00a86b; color:white; font-weight:700; }
+.actions button[disabled]{ opacity:0.5 }
+
+.options { text-align:center; font-size:0.95rem; }
+
+@media (max-width:480px){
+    .timer-display { font-size: 3.2rem; }
+    .timer-controls input[type="number"]{ width:72px; }
+    .timer-card { margin: 18px 12px; }
+}
+
+/* Laps table */
+.laps { margin-top: 18px; }
+.laps h2 { margin: 8px 0; text-align:left; }
+.laps-table-wrap { overflow:auto; }
+.laps-table { width:100%; border-collapse: collapse; }
+.laps-table th, .laps-table td { padding: 8px 10px; text-align:left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.laps-table thead th { background: rgba(0,0,0,0.04); font-weight:700; }
+.laps-table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+
+/* Multi timers layout */
+.multi-timers .timers-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    /* keep timers horizontal and allow flex items to shrink to fit viewport */
+    flex-wrap: nowrap;
+    overflow-x: hidden; /* avoid horizontal scrolling */
+    padding-bottom: 6px;
+}
+.multi-timers .single-timer {
+    /* allow each column to shrink so three fit on narrow viewports */
+    flex: 1 1 0;
+    min-width: 0; /* important to allow shrinking below content width */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background: rgba(255,255,255,0.02);
+    padding: 6px;
+    border-radius: 6px;
+}
+.multi-timers .single-timer .timer-display{
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 10px;
+}
+.controls-row{ display:flex; gap:8px; justify-content:center; align-items:center; margin-bottom:8px; }
+.hold-btn{
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 8px;
+    border: none;
+    font-size: clamp(0.9rem, 3.5vw, 1.2rem);
+    font-weight: 800;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+    transition: transform 0.08s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+    /* Prevent the browser from interpreting touch drags on the button as scrolling */
+    touch-action: none;
+}
+.hold-btn:active{ transform: translateY(2px); }
+.hold-btn.running{ box-shadow: 0 10px 30px rgba(0,0,0,0.18); transform: scale(1.01); }
+.hold-btn#hold-0{ background: linear-gradient(180deg,#ff6b6b,#ff4757); }
+.hold-btn#hold-1{ background: linear-gradient(180deg,#4ecdc4,#2c9f9f); }
+.hold-btn#hold-2{ background: linear-gradient(180deg,#ffd166,#ffb84d); color:#222; }
+.lap-btn, .reset-btn{ padding:8px 10px; border-radius:8px; border:none; background:#2b2b2b; color:#fff; }
+
+/* Prevent mobile text selection / callout on the colored hold buttons */
+.hold-btn, .hold-btn *{
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+@media (max-width:900px){
+    /* keep horizontal layout and let items shrink; further reduce button text on small screens */
+    .multi-timers .timers-grid{ flex-wrap: nowrap; }
+    .hold-btn{ font-size: clamp(0.8rem, 4.5vw, 1.05rem); }
+}
+
+/* Mobile portrait: make the hold buttons very large and occupy the bottom third of the screen */
+@media (max-width:480px) and (orientation: portrait) {
+    /* make the timer card fill available viewport height (accounting for fixed nav) */
+    .timer-card {
+          /* remove extra margins and use the nav height variable so total fits
+              within the viewport. using min-height ensures the sheet + timers
+              can share space without forcing vertical scroll. */
+          margin: 0;
+          padding: 10px;
+          min-height: calc(100vh - var(--nav-height));
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+    }
+
+    /* keep sheet and laps compact */
+    .sheet-window { margin: 0; padding: 6px 8px; }
+    .sheet-table td { padding: 8px 6px; font-size: 0.95rem; }
+    .laps-table { max-height: 14vh; overflow:auto; }
+
+    /* timers row takes remaining space; align controls at the bottom */
+    .multi-timers .timers-grid { align-items: flex-end; }
+    .multi-timers .single-timer { justify-content: flex-end; padding: 6px 6px 10px 6px; }
+
+    /* Make buttons tall to cover roughly bottom third */
+    .hold-btn {
+        aspect-ratio: auto;
+        height: 32vh; /* approx bottom third */
+        width: 100%;
+        font-size: clamp(1.6rem, 7vw, 2.6rem);
+        border-radius: 10px;
+    }
+
+    /* reduce gaps so three fit comfortably */
+    .multi-timers .timers-grid { gap: 8px; }
+    .sheet-header { gap: 8px; }
+}
+
+/* Sheet window - looks like a simple spreadsheet header */
+.sheet-window { max-width: 1100px; margin: 12px auto; padding: 8px; }
+.sheet-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.sheet-table { width: auto; flex: 1 1 auto; border-collapse: collapse; background: #fff; color:#111; border-radius:6px; overflow:hidden; table-layout: fixed; }
+.reset-all-btn { padding:10px 14px; background:#ff6b6b; color:white; border:none; border-radius:8px; font-weight:700; position:relative; z-index:3; min-width:92px; }
+.reset-all-btn:active{ transform: translateY(1px); }
+.sheet-footer .reset-all-btn, #nav-replacement { background:#6c8cff; }
+#nav-replacement { min-width: 88px; }
+.sheet-table thead th { text-align:center; padding:12px 8px; background:#e9eef6; border-bottom:1px solid #cdd7ea; font-weight:700; }
+.sheet-table td { text-align:center; padding:14px 8px; font-size: clamp(0.95rem, 4.5vw, 1.05rem); border-right:1px solid #eef3fb; }
+.sheet-table td:last-child{ border-right: none; }
+
+/* Make sheet rows selectable and show an active highlight */
+.sheet-table tbody tr { cursor: pointer; transition: background 0.12s ease; }
+.sheet-table tbody tr:hover { background: rgba(0,0,0,0.03); }
+.sheet-table tbody tr.active-row { background: linear-gradient(90deg, rgba(108,140,255,0.08), rgba(108,140,255,0.04)); }
+
+/* Dim non-active rows slightly so the active row stands out. Keep the
+   step label orange and unaffected. */
+.sheet-table tbody tr:not(.active-row) td:not(.row-label) {
+    color: #666; /* slightly muted text */
+    background: rgba(0,0,0,0.01);
+}
+
+/* Step column styling: make it narrow and visually distinct with a light orange fill */
+.sheet-table thead th:first-child,
+.sheet-table td.row-label {
+    width: 56px;
+    padding: 8px 6px;
+    text-align: center;
+    background: #fff2e0; /* light orange */
+    color: #6b3f00;
+    font-weight: 800;
+}
+
+/* Timer columns take remaining width */
+.sheet-table td:not(.row-label) { width: calc((100% - 56px) / 3); }
+
+/* make laps table look lightweight and fit above */
+.laps h3 { margin: 0 0 6px 0; font-size:0.95rem; }
+.laps-table { background: #fff; border-radius:6px; overflow:hidden; }
+.laps-table th, .laps-table td { padding:6px 8px; border-bottom:1px solid #f1f5fb; }
+.controls-row{ padding:8px 0; }
+.laps-table thead th{ background:#f7fbff; font-weight:700; }
