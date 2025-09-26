@@ -18,8 +18,10 @@
 
     // Persistent storage helpers
     const STORAGE_KEY = 'timestudy_state_v1';
+    let _initialized = false; // prevent writes during startup
     function saveState(){
         try{
+            if(!_initialized) return; // skip saving while scripts initialize (avoids wiping existing saved state)
             const state = { activeRow, timers: timers.map(t=>({ elapsedPerRow: t.elapsedPerRow, running: t.running, runningRow: t.runningRow, baseElapsed: t.baseElapsed, startTimestamp: t.running ? Date.now() - (performance.now() - t.startTime) : null })) };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
             const statusEl = document.getElementById('save-status');
@@ -226,56 +228,69 @@
         // Attempt to restore saved state (elapsedPerRow, activeRow, running timers)
         (function(){
             const saved = loadState();
-            if(!saved || !saved.timers) {
-                const statusEl = document.getElementById('save-status');
-                if(statusEl) statusEl.textContent = '(no saved state)';
-                return;
-            }
-            try{
-                if(typeof saved.activeRow === 'number') activeRow = Math.max(0, Math.min(ROWS-1, saved.activeRow));
-                for(let i=0;i<COUNT;i++){
-                    const s = saved.timers[i];
-                    const t = timers[i];
-                    if(!t || !s) continue;
-                    // restore elapsedPerRow (ensure proper length)
-                    if(Array.isArray(s.elapsedPerRow)){
-                        const arr = new Array(ROWS).fill(0);
-                        for(let r=0;r<Math.min(ROWS, s.elapsedPerRow.length); r++) arr[r] = s.elapsedPerRow[r] || 0;
-                        t.elapsedPerRow = arr;
-                    }
-                    // restore baseElapsed and runningRow
-                    t.baseElapsed = s.baseElapsed || 0;
-                    t.runningRow = (typeof s.runningRow === 'number') ? s.runningRow : null;
-                    // if saved as running, reconstruct startTime and restart RAF
-                    if(s.running){
-                        t.running = true;
-                        // saved.startTimestamp is a wall-clock ms timestamp representing when the run started
-                        if(s.startTimestamp){
-                            // compute performance.now()-based startTime so that (performance.now() - t.startTime) equals elapsed since saved.startTimestamp
-                            t.startTime = performance.now() - (Date.now() - s.startTimestamp);
-                        } else {
-                            t.startTime = performance.now();
-                        }
-                        // mark button UI and start render loop
-                        try{ t.holdBtn.classList.add('running'); }catch(e){}
-                        if(typeof t.render === 'function') t.rafId = requestAnimationFrame(t.render);
-                    } else {
-                        t.running = false;
-                    }
-                    // update sheet cells for restored values
-                    for(let r=0;r<ROWS;r++){
-                        const cell = document.getElementById('sheet-r'+r+'-c'+i);
-                        if(cell) cell.textContent = formatMs(t.elapsedPerRow[r] || 0);
-                    }
-                }
-            }catch(err){
-                console.error('Restore failed', err);
-                const statusEl = document.getElementById('save-status');
-                if(statusEl) statusEl.textContent = '(restore failed)';
-            }
-            // mark saved after restore
             const statusEl = document.getElementById('save-status');
-            if(statusEl) statusEl.textContent = '(restored)';
+
+            if(!saved || !saved.timers){
+                if(statusEl) statusEl.textContent = '(no saved state)';
+            } else {
+                try{
+                    if(typeof saved.activeRow === 'number') activeRow = Math.max(0, Math.min(ROWS-1, saved.activeRow));
+                    for(let i=0;i<COUNT;i++){
+                        const s = saved.timers[i];
+                        const t = timers[i];
+                        if(!t || !s) continue;
+                        // restore elapsedPerRow (ensure proper length)
+                        if(Array.isArray(s.elapsedPerRow)){
+                            const arr = new Array(ROWS).fill(0);
+                            for(let r=0;r<Math.min(ROWS, s.elapsedPerRow.length); r++) arr[r] = s.elapsedPerRow[r] || 0;
+                            t.elapsedPerRow = arr;
+                        }
+                        // restore baseElapsed and runningRow
+                        t.baseElapsed = s.baseElapsed || 0;
+                        t.runningRow = (typeof s.runningRow === 'number') ? s.runningRow : null;
+                        // if saved as running, reconstruct startTime and restart RAF
+                        if(s.running){
+                            t.running = true;
+                            // saved.startTimestamp is a wall-clock ms timestamp representing when the run started
+                            if(s.startTimestamp){
+                                // compute performance.now()-based startTime so that (performance.now() - t.startTime) equals elapsed since saved.startTimestamp
+                                t.startTime = performance.now() - (Date.now() - s.startTimestamp);
+                            } else {
+                                t.startTime = performance.now();
+                            }
+                            // mark button UI and start render loop
+                            try{ t.holdBtn.classList.add('running'); }catch(e){}
+                            if(typeof t.render === 'function') t.rafId = requestAnimationFrame(t.render);
+                        } else {
+                            t.running = false;
+                        }
+                        // update sheet cells for restored values
+                        for(let r=0;r<ROWS;r++){
+                            const cell = document.getElementById('sheet-r'+r+'-c'+i);
+                            if(cell) cell.textContent = formatMs(t.elapsedPerRow[r] || 0);
+                        }
+                    }
+                    if(statusEl) statusEl.textContent = '(restored)';
+                }catch(err){
+                    console.error('Restore failed', err);
+                    if(statusEl) statusEl.textContent = '(restore failed)';
+                }
+            }
+
+            // initialization complete; allow saves.
+            // If there was no prior saved state, create an initial save. If a saved
+            // state already exists, do not write to it during init — preserve the
+            // existing saved data and wait for user actions to change state.
+            _initialized = true;
+            try{
+                const hadSaved = !!(saved && saved.timers);
+                if(!hadSaved){
+                    saveState();
+                } else {
+                    const statusEl2 = document.getElementById('save-status');
+                    if(statusEl2) statusEl2.textContent = '(restored)';
+                }
+            }catch(e){}
         })();
 
     // Row selection handlers
